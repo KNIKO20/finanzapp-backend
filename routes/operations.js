@@ -10,7 +10,7 @@ export const opSchema = z.object({
   amount: z.number().nonnegative(),
   date: z.string().datetime(), // ISO 8601
   type: z.enum(["income","expenditure"]),
-  category: z.enum(["food","study","home","leisure","transport"]),
+  category: z.enum(["food","study","home","leisure","transport","health","shopping"]),
 });
 
 const router = express.Router();
