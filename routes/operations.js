@@ -26,13 +26,101 @@ router.get("/show", authMiddleware, async (req, res) => {
   try {
     const userId = String(req.user.id); 
     const { rows } = await pool.query(
-      "SELECT * FROM operations WHERE user_id=$1",
+      "SELECT * FROM operations WHERE user_id=$1 ORDER BY date DESC",
       [userId]
     );
     res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Querry error" });
+  }
+});
+
+router.get("/show/dateASC", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user.id); 
+    const { rows } = await pool.query(
+      "SELECT * FROM operations WHERE user_id=$1 ORDER BY date ASC",
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Querry error" });
+  }
+});
+
+router.get("/show/inc", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user.id); 
+    const { rows } = await pool.query(
+      "SELECT * FROM operations WHERE user_id=$1 AND type='income' ORDER BY date DESC",
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Querry error" });
+  }
+});
+
+router.get("/show/exp", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user.id); 
+    const { rows } = await pool.query(
+      "SELECT * FROM operations WHERE user_id=$1 AND type='expenditure' ORDER BY date DESC",
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Querry error" });
+  }
+});
+
+router.get("/show/filter", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user.id);
+    const { category } = req.query;
+
+    let query = "SELECT * FROM operations WHERE user_id=$1";
+    const values = [userId];
+
+    if (category && category !== "all") {
+      query += " AND category = $2";
+      values.push(category);
+    }
+
+    query += " ORDER BY date DESC";
+
+    const { rows } = await pool.query(query, values);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Query error" });
+  }
+});
+
+router.get("/show/search", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user.id);
+    const { search } = req.query;
+
+    let query = "SELECT * FROM operations WHERE user_id=$1";
+    const values = [userId];
+
+    if (search) {
+      query += " AND LOWER(name) LIKE LOWER($2) OR LOWER(details) LIKE LOWER($2) OR LOWER(category) LIKE LOWER($2) OR TO_CHAR(date, 'YYYY-MM-DD') LIKE $2";
+      values.push(`%${search}%`);
+    }
+
+    query += " ORDER BY date DESC";
+
+    const { rows } = await pool.query(query, values);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Query error" });
   }
 });
 
